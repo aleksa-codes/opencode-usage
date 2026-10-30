@@ -9,6 +9,7 @@ Stack: TypeScript, Bun, OpenCode plugin SDK 2.2.4, SolidJS, Zod.
 - OpenCode loads `src/index.ts` and `dist/tui.js` from the package exports in the global config.
 - `bun run typecheck` checks the plugin source.
 - `bun run format:check` checks formatting. `bun run format` formats the project.
-- Run `bun run build` after TUI or shared-source changes and commit `dist/tui.js` for Git installs.
+- Run `bun run build:tui` after TUI or shared-source changes and commit `dist/tui.js` for Git installs.
+- Keep this task named `build:tui`: npm treats `build` as a Git-dependency preparation trigger.
 - The TUI needs Solid compilation: OpenTUI skips its runtime TSX transform inside `node_modules`.
 - No test suite is configured. The plugin runs inside the OpenCode TUI.

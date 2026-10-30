@@ -9,7 +9,7 @@
     "./rpc": "./src/rpc.ts"
   },
   "scripts": {
-    "build": "bun script/build.mjs",
+    "build:tui": "bun script/build.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

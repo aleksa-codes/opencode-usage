@@ -29,7 +29,7 @@ OpenAI's usage endpoint is undocumented and may change independently of OpenCode
 bun install
 bun run typecheck
 bun run format:check
-bun run build
+bun run build:tui
 ```
 
 OpenCode loads the package's server and TUI exports directly from its global configuration.

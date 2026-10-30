@@ -58,7 +58,7 @@ export default Plugin.define({
               // A reply finished inside the cooldown. Queue its check instead of dropping it.
               refreshTimer = setTimeout(
                 () => void refresh(),
-                Math.max(2_000, value.checkedAt + REFRESH_COOLDOWN_MS + 100 - Date.now())
+                Math.max(1_000, value.checkedAt + REFRESH_COOLDOWN_MS + 100 - Date.now())
               )
             } else {
               refreshAfter = 0
@@ -72,21 +72,20 @@ export default Plugin.define({
         if (event.data.sessionID !== props.sessionID) return
         refreshAfter = Date.now()
         clearTimeout(refreshTimer)
-        refreshTimer = setTimeout(() => void refresh(), 2_000)
+        refreshTimer = setTimeout(() => void refresh(), 1_000)
       }
       const stopEvents = [
         context.data.on("session.execution.succeeded", refreshAfterExecution),
         context.data.on("session.execution.failed", refreshAfterExecution),
         context.data.on("session.execution.interrupted", refreshAfterExecution),
       ]
-      const timer = setInterval(() => {
-        setNow(Date.now())
-        void refresh()
-      }, 60_000)
+      const timer = setInterval(() => setNow(Date.now()), 60_000)
+      const usageTimer = setInterval(() => void refresh(), 5 * 60_000)
 
       onCleanup(() => {
         disposed = true
         clearInterval(timer)
+        clearInterval(usageTimer)
         clearTimeout(refreshTimer)
         stopEvents.forEach((stop) => stop())
       })

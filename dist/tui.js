@@ -222,7 +222,7 @@ var tui_default = Plugin.define({
             const value = snapshot();
             clearTimeout(refreshTimer);
             if (value?.state === "ready" && !value.stale && value.checkedAt !== null && value.checkedAt < refreshAfter) {
-              refreshTimer = setTimeout(() => void refresh(), Math.max(2000, value.checkedAt + REFRESH_COOLDOWN_MS + 100 - Date.now()));
+              refreshTimer = setTimeout(() => void refresh(), Math.max(1000, value.checkedAt + REFRESH_COOLDOWN_MS + 100 - Date.now()));
             } else {
               refreshAfter = 0;
             }
@@ -235,16 +235,15 @@ var tui_default = Plugin.define({
           return;
         refreshAfter = Date.now();
         clearTimeout(refreshTimer);
-        refreshTimer = setTimeout(() => void refresh(), 2000);
+        refreshTimer = setTimeout(() => void refresh(), 1000);
       };
       const stopEvents = [context.data.on("session.execution.succeeded", refreshAfterExecution), context.data.on("session.execution.failed", refreshAfterExecution), context.data.on("session.execution.interrupted", refreshAfterExecution)];
-      const timer = setInterval(() => {
-        setNow(Date.now());
-        refresh();
-      }, 60000);
+      const timer = setInterval(() => setNow(Date.now()), 60000);
+      const usageTimer = setInterval(() => void refresh(), 5 * 60000);
       onCleanup(() => {
         disposed = true;
         clearInterval(timer);
+        clearInterval(usageTimer);
         clearTimeout(refreshTimer);
         stopEvents.forEach((stop) => stop());
       });

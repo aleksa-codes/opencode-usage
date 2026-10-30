@@ -14,10 +14,10 @@ not run the Codex CLI.
 ## How it works
 
 - Reads the active OpenAI OAuth login through OpenCode's integration API.
-- Checks both windows two seconds after a session execution ends, with a 30-second request cooldown.
+- Checks both windows one second after a session execution ends, with a 30-second request cooldown.
   Replies inside the cooldown queue a follow-up check instead of leaving the cached values in place.
-- Checks every minute while idle and updates the countdowns. Failed checks back off for at least five
-  minutes, honoring a longer `Retry-After` when rate limited.
+- Checks periodically every five minutes and updates the countdowns every minute. Failed checks back
+  off for at least five minutes, honoring a longer `Retry-After` when rate limited.
 - Keeps the last successful values visible if a later check fails.
 - When space is tight, drops the bars before shortening labels so percentages and reset countdowns
   stay visible as long as possible.

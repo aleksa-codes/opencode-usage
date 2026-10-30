@@ -29,6 +29,10 @@ OpenAI's usage endpoint is undocumented and may change independently of OpenCode
 bun install
 bun run typecheck
 bun run format:check
+bun run build
 ```
 
 OpenCode loads the package's server and TUI exports directly from its global configuration.
+The TUI export is precompiled with Solid because Git-installed packages live in `node_modules`,
+where OpenTUI skips runtime TSX compilation. Rebuild and commit `dist/tui.js` after changing the
+TUI or its shared sources. No install-time build or publishing is required.

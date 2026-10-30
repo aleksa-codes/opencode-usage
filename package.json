@@ -5,10 +5,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./tui": "./src/tui.tsx",
+    "./tui": "./dist/tui.js",
     "./rpc": "./src/rpc.ts"
   },
   "scripts": {
+    "build": "bun script/build.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

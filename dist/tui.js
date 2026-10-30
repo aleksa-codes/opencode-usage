@@ -111,6 +111,7 @@ function fitSegments(segments, room) {
 
 // src/rpc.ts
 import { Rpc } from "@opencode/plugin/rpc";
+var REFRESH_COOLDOWN_MS = 30000;
 var UsageRpc = Rpc.define({
   id: "opencode-usage",
   methods: {
@@ -186,6 +187,8 @@ var tui_default = Plugin.define({
       const [now, setNow] = createSignal(Date.now());
       let pending = false;
       let disposed = false;
+      let refreshAfter = 0;
+      let refreshTimer;
       const refresh = async () => {
         if (pending)
           return;
@@ -194,8 +197,10 @@ var tui_default = Plugin.define({
           const result = await context.client.rpc(UsageRpc).snapshot({});
           if (!isUsageSnapshot(result))
             throw new Error("Invalid usage snapshot");
-          if (!disposed)
+          if (!disposed) {
             setSnapshot(result);
+            setNow(Date.now());
+          }
         } catch (error) {
           if (!disposed && snapshot()?.state === "ready") {
             setSnapshot((previous) => previous ? {
@@ -213,12 +218,24 @@ var tui_default = Plugin.define({
           }
         } finally {
           pending = false;
+          if (!disposed && refreshAfter > 0) {
+            const value = snapshot();
+            clearTimeout(refreshTimer);
+            if (value?.state === "ready" && !value.stale && value.checkedAt !== null && value.checkedAt < refreshAfter) {
+              refreshTimer = setTimeout(() => void refresh(), Math.max(2000, value.checkedAt + REFRESH_COOLDOWN_MS + 100 - Date.now()));
+            } else {
+              refreshAfter = 0;
+            }
+          }
         }
       };
       refresh();
       const refreshAfterExecution = (event) => {
-        if (event.data.sessionID === props.sessionID)
-          refresh();
+        if (event.data.sessionID !== props.sessionID)
+          return;
+        refreshAfter = Date.now();
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => void refresh(), 2000);
       };
       const stopEvents = [context.data.on("session.execution.succeeded", refreshAfterExecution), context.data.on("session.execution.failed", refreshAfterExecution), context.data.on("session.execution.interrupted", refreshAfterExecution)];
       const timer = setInterval(() => {
@@ -228,6 +245,7 @@ var tui_default = Plugin.define({
       onCleanup(() => {
         disposed = true;
         clearInterval(timer);
+        clearTimeout(refreshTimer);
         stopEvents.forEach((stop) => stop());
       });
       const theme = context.theme;

@@ -3,7 +3,7 @@ import { Plugin } from "@opencode/plugin/tui"
 import type { BoxRenderable } from "@opentui/core"
 import { For, createSignal, onCleanup } from "solid-js"
 import { usageSegments } from "./display.js"
-import { isUsageSnapshot, UsageRpc, type UsageSnapshot } from "./rpc.js"
+import { isUsageSnapshot, REFRESH_COOLDOWN_MS, UsageRpc, type UsageSnapshot } from "./rpc.js"
 
 export default Plugin.define({
   id: "opencode-usage.tui",
@@ -19,6 +19,8 @@ export default Plugin.define({
       const [now, setNow] = createSignal(Date.now())
       let pending = false
       let disposed = false
+      let refreshAfter = 0
+      let refreshTimer: ReturnType<typeof setTimeout> | undefined
 
       const refresh = async () => {
         if (pending) return
@@ -26,7 +28,10 @@ export default Plugin.define({
         try {
           const result: unknown = await context.client.rpc(UsageRpc).snapshot({})
           if (!isUsageSnapshot(result)) throw new Error("Invalid usage snapshot")
-          if (!disposed) setSnapshot(result)
+          if (!disposed) {
+            setSnapshot(result)
+            setNow(Date.now())
+          }
         } catch (error) {
           if (!disposed && snapshot()?.state === "ready") {
             setSnapshot((previous) => (previous ? { ...previous, stale: true } : previous))
@@ -41,12 +46,33 @@ export default Plugin.define({
           }
         } finally {
           pending = false
+          if (!disposed && refreshAfter > 0) {
+            const value = snapshot()
+            clearTimeout(refreshTimer)
+            if (
+              value?.state === "ready" &&
+              !value.stale &&
+              value.checkedAt !== null &&
+              value.checkedAt < refreshAfter
+            ) {
+              // A reply finished inside the cooldown. Queue its check instead of dropping it.
+              refreshTimer = setTimeout(
+                () => void refresh(),
+                Math.max(2_000, value.checkedAt + REFRESH_COOLDOWN_MS + 100 - Date.now())
+              )
+            } else {
+              refreshAfter = 0
+            }
+          }
         }
       }
 
       void refresh()
       const refreshAfterExecution = (event: { data: { sessionID: string } }) => {
-        if (event.data.sessionID === props.sessionID) void refresh()
+        if (event.data.sessionID !== props.sessionID) return
+        refreshAfter = Date.now()
+        clearTimeout(refreshTimer)
+        refreshTimer = setTimeout(() => void refresh(), 2_000)
       }
       const stopEvents = [
         context.data.on("session.execution.succeeded", refreshAfterExecution),
@@ -61,6 +87,7 @@ export default Plugin.define({
       onCleanup(() => {
         disposed = true
         clearInterval(timer)
+        clearTimeout(refreshTimer)
         stopEvents.forEach((stop) => stop())
       })
 

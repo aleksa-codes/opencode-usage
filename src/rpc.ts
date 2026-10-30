@@ -1,5 +1,7 @@
 import { Rpc } from "@opencode/plugin/rpc"
 
+export const REFRESH_COOLDOWN_MS = 30_000
+
 export interface UsageWindow {
   id: "five_hour" | "week"
   percentRemaining: number

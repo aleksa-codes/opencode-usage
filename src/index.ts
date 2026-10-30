@@ -1,9 +1,9 @@
 import { Plugin } from "@opencode/plugin"
-import { UsageRpc, type UsageSnapshot, type UsageWindow } from "./rpc.js"
+import { REFRESH_COOLDOWN_MS, UsageRpc, type UsageSnapshot, type UsageWindow } from "./rpc.js"
 
 const OPENAI_INTEGRATIONS = ["openai", "codex", "chatgpt"] as const
 const USAGE_URL = "https://chatgpt.com/backend-api/wham/usage"
-const CACHE_MS = 5 * 60_000
+const ERROR_RETRY_MS = 5 * 60_000
 const REQUEST_TIMEOUT_MS = 8_000
 const WINDOW_MS = {
   five_hour: 5 * 60 * 60_000,
@@ -19,8 +19,8 @@ export default Plugin.define({
 
     const registration = await ctx.rpc.register(UsageRpc, {
       snapshot: async () => {
-        if (snapshot && Date.now() < nextCheckAt) return snapshot
         if (inFlight) return inFlight
+        if (snapshot && Date.now() < nextCheckAt) return snapshot
 
         const request = refresh()
         inFlight = request
@@ -48,7 +48,7 @@ export default Plugin.define({
             stale: false,
             message: "Sign in with OpenAI to show usage",
           }
-          nextCheckAt = Date.now() + CACHE_MS
+          nextCheckAt = Date.now() + ERROR_RETRY_MS
           return snapshot
         }
 
@@ -79,12 +79,12 @@ export default Plugin.define({
           stale: false,
           message: "",
         }
-        nextCheckAt = Date.now() + Math.max(CACHE_MS, retryAfterMs)
+        nextCheckAt = Date.now() + REFRESH_COOLDOWN_MS
         return snapshot
       } catch (error) {
         const failureName = error instanceof Error ? error.name : "UnknownError"
         console.warn(`[opencode-usage] quota refresh failed (${failureName})`)
-        nextCheckAt = Date.now() + Math.max(CACHE_MS, retryAfterMs)
+        nextCheckAt = Date.now() + Math.max(ERROR_RETRY_MS, retryAfterMs)
         snapshot =
           previous?.state === "ready"
             ? { ...previous, stale: true, message: "Showing the last successful check" }

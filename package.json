@@ -1,0 +1,27 @@
+{
+  "name": "opencode-usage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tui": "./src/tui.tsx",
+    "./rpc": "./src/rpc.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.2.4",
+    "solid-js": "^1.9.12"
+  },
+  "devDependencies": {
+    "@opencode/theme": "2.2.4",
+    "@opentui/core": "^0.8.0",
+    "@opentui/solid": "^0.8.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3"
+  }
+}

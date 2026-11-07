@@ -12,26 +12,31 @@ with both limits side by side in the status line, a layout I was missing there.
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | ![ChatGPT quota in the session prompt footer](docs/images/session.png) | ![ChatGPT quota in the home-screen status row](docs/images/home.png) |
 
-Percentages, bars, reset countdowns, and a white pacing marker. Adapts to narrow windows.
+Percentages, bars, reset countdowns, and a theme-aware pacing marker. Adapts to narrow windows.
 **OpenAI ChatGPT only.** Contributions for other providers are welcome.
 
 ## Sign in
 
 `/connect` → **OpenAI** → **Codex browser (legacy)** or **Codex device code (legacy)**.
 
-**The newer “Sign in with ChatGPT” login and API keys do not work.**
-Uses your OpenCode login, not the Codex CLI. No credentials or quota data are written to disk.
+**OAuth is required; API keys are not supported.** Use a legacy Codex login if
+the newer “Sign in with ChatGPT” login cannot fetch quota. The plugin accepts
+OpenCode's active OAuth credential, but OpenAI decides whether it can access usage.
+Uses your OpenCode login, not the Codex CLI. The plugin writes no credentials or
+quota data to disk; OpenCode manages stored login credentials.
 
 ## Refresh, display, and privacy
 
-- Checks quota one second after execution ends and every five minutes in the background.
-  A 30-second request cooldown queues a follow-up check if needed. Countdowns update every minute.
+- Requests a quota check one second after session execution ends and every five minutes
+  while the display is mounted. A 30-second cooldown or error backoff can delay the
+  actual request. Replies during the cooldown queue a follow-up check. Countdowns
+  update every minute.
 - Failed checks keep the last values visible. Retries wait at least five minutes,
   or longer if OpenAI sends a `Retry-After` response.
 - Narrow layouts drop bars, then shorten labels. Sessions also drop countdowns,
   then hide quota if both percentages cannot fit.
-- White bar markers help pace usage until reset. Credentials come from OpenCode's
-  integration API; OpenCode handles OAuth refresh.
+- Bar markers use the theme's background color and help pace usage until reset.
+  Credentials come from OpenCode's integration API; OpenCode handles OAuth refresh.
 - OpenAI's usage endpoint is undocumented and may change independently of OpenCode.
 
 ## Development

@@ -1,41 +1,48 @@
 # OpenCode Usage
 
-A small OpenCode V2 plugin that adds OpenAI ChatGPT quota to the TUI prompt footer
-and home-screen status row.
-It shows the 5-hour and weekly usage windows side by side, including reset countdowns and
-the white steady-use marker.
+A small OpenCode V2 plugin that shows your remaining OpenAI ChatGPT quota.
+See both the **5-hour and weekly (7-day) limits side by side**, in the session
+prompt footer and the home-screen status row.
 
-## Background
+Based on [opencode-quota](https://github.com/slkiser/opencode-quota). Its
+multi-provider focus felt more complex than I needed. I wanted a smaller plugin
+with both limits side by side in the status line, a layout I was missing there.
 
-Based on [opencode-quota](https://github.com/slkiser/opencode-quota), whose multi-provider
-focus felt more complex than I needed. I wanted a smaller plugin focused on showing both
-the 5-hour and weekly (7-day) limits side by side in the status line, a layout I was missing
-in opencode-quota.
+## What it shows
 
-Currently, only OpenAI ChatGPT quota is supported. Contributions adding support for other
-providers are welcome.
+- Remaining percentages, usage bars, and reset countdowns for both limits.
+- A white marker on each bar to help you pace usage until the next reset.
+- A smaller display when space is tight: bars disappear first, then labels shorten.
+  In sessions, countdowns disappear next. If both percentages still cannot fit,
+  the quota display is hidden instead of cut off.
 
-## Authentication
+Only OpenAI ChatGPT is supported today. Contributions for other providers are welcome.
 
-Requires the legacy Codex OAuth login in OpenCode: `/connect` → OpenAI → Codex browser (legacy)
-or Codex device code (legacy). The ChatGPT usage endpoint rejects the newer “Sign in with ChatGPT”
-token and OpenAI API-key logins. The plugin reads the active credential through OpenCode and does
-not run the Codex CLI.
+## Sign in
 
-## How it works
+Use a **legacy Codex login** in OpenCode:
 
-- Reads the active OpenAI OAuth login through OpenCode's integration API.
-- Checks both windows one second after a session execution ends, with a 30-second request cooldown.
-  Replies inside the cooldown queue a follow-up check instead of leaving the cached values in place.
-- Checks periodically every five minutes and updates the countdowns every minute. Failed checks back
-  off for at least five minutes, honoring a longer `Retry-After` when rate limited.
-- Keeps the last successful values visible if a later check fails.
-- When space is tight, drops the bars before shortening labels so percentages and reset countdowns
-  stay visible as long as possible. In sessions, drops reset countdowns next and hides quota
-  if both percentages still cannot fit.
-- Writes no credentials or quota snapshots to disk. OAuth refresh stays with OpenCode.
+1. Run `/connect` and choose **OpenAI**.
+2. Choose **Codex browser (legacy)** or **Codex device code (legacy)**.
 
-OpenAI's usage endpoint is undocumented and may change independently of OpenCode.
+The newer “Sign in with ChatGPT” login and OpenAI API keys do not work with the
+ChatGPT usage endpoint. The plugin uses your active OpenCode login; it does not
+run the Codex CLI.
+
+## Updates and privacy
+
+Quota refreshes one second after a session execution ends and every five minutes
+in the background. Requests have a 30-second cooldown. If a reply finishes during
+that cooldown, a follow-up check is queued. Countdown text updates every minute.
+
+If a check fails, the last successful values stay visible. Retries wait at least
+five minutes, or longer if OpenAI sends a `Retry-After` rate-limit response.
+
+The plugin reads credentials through OpenCode's integration API and writes neither
+credentials nor quota snapshots to disk. OpenCode handles OAuth token refresh.
+
+**Note:** OpenAI's usage endpoint is undocumented and may change independently
+of OpenCode.
 
 ## Development
 
@@ -46,10 +53,15 @@ bun run format:check
 bun run build:tui
 ```
 
-OpenCode loads the package's server and TUI exports directly from its global configuration.
-The TUI export is precompiled with Solid because Git-installed packages live in `node_modules`,
-where OpenTUI skips runtime TSX compilation. Rebuild and commit `dist/tui.js` after changing the
-TUI or its shared sources. No install-time build or publishing is required.
+OpenCode loads the package's server and TUI exports through its global plugin
+configuration. No publishing or install-time build is required.
+
+**After changing the TUI or shared sources, rebuild and commit `dist/tui.js`.**
+The TUI is precompiled with Solid because Git-installed packages live in
+`node_modules`, where OpenTUI skips runtime TSX compilation.
+
+No automated test suite is configured. Check rendering and behavior inside the
+OpenCode TUI.
 
 ## License
 

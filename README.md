@@ -1,48 +1,37 @@
 # OpenCode Usage
 
-A small OpenCode V2 plugin that shows your remaining OpenAI ChatGPT quota.
-See both the **5-hour and weekly (7-day) limits side by side**, in the session
-prompt footer and the home-screen status row.
+A small OpenCode V2 plugin showing **remaining 5-hour and weekly (7-day) ChatGPT
+quota side by side**, in sessions and on the home screen.
 
 Based on [opencode-quota](https://github.com/slkiser/opencode-quota). Its
 multi-provider focus felt more complex than I needed. I wanted a smaller plugin
 with both limits side by side in the status line, a layout I was missing there.
 
-## What it shows
+| Session                                                                | Home                                                                 |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| ![ChatGPT quota in the session prompt footer](docs/images/session.png) | ![ChatGPT quota in the home-screen status row](docs/images/home.png) |
 
-- Remaining percentages, usage bars, and reset countdowns for both limits.
-- A white marker on each bar to help you pace usage until the next reset.
-- A smaller display when space is tight: bars disappear first, then labels shorten.
-  In sessions, countdowns disappear next. If both percentages still cannot fit,
-  the quota display is hidden instead of cut off.
-
-Only OpenAI ChatGPT is supported today. Contributions for other providers are welcome.
+Percentages, bars, reset countdowns, and a white pacing marker. Adapts to narrow windows.
+**OpenAI ChatGPT only.** Contributions for other providers are welcome.
 
 ## Sign in
 
-Use a **legacy Codex login** in OpenCode:
+`/connect` → **OpenAI** → **Codex browser (legacy)** or **Codex device code (legacy)**.
 
-1. Run `/connect` and choose **OpenAI**.
-2. Choose **Codex browser (legacy)** or **Codex device code (legacy)**.
+**The newer “Sign in with ChatGPT” login and API keys do not work.**
+Uses your OpenCode login, not the Codex CLI. No credentials or quota data are written to disk.
 
-The newer “Sign in with ChatGPT” login and OpenAI API keys do not work with the
-ChatGPT usage endpoint. The plugin uses your active OpenCode login; it does not
-run the Codex CLI.
+## Refresh, display, and privacy
 
-## Updates and privacy
-
-Quota refreshes one second after a session execution ends and every five minutes
-in the background. Requests have a 30-second cooldown. If a reply finishes during
-that cooldown, a follow-up check is queued. Countdown text updates every minute.
-
-If a check fails, the last successful values stay visible. Retries wait at least
-five minutes, or longer if OpenAI sends a `Retry-After` rate-limit response.
-
-The plugin reads credentials through OpenCode's integration API and writes neither
-credentials nor quota snapshots to disk. OpenCode handles OAuth token refresh.
-
-**Note:** OpenAI's usage endpoint is undocumented and may change independently
-of OpenCode.
+- Checks quota one second after execution ends and every five minutes in the background.
+  A 30-second request cooldown queues a follow-up check if needed. Countdowns update every minute.
+- Failed checks keep the last values visible. Retries wait at least five minutes,
+  or longer if OpenAI sends a `Retry-After` response.
+- Narrow layouts drop bars, then shorten labels. Sessions also drop countdowns,
+  then hide quota if both percentages cannot fit.
+- White bar markers help pace usage until reset. Credentials come from OpenCode's
+  integration API; OpenCode handles OAuth refresh.
+- OpenAI's usage endpoint is undocumented and may change independently of OpenCode.
 
 ## Development
 
@@ -63,6 +52,4 @@ The TUI is precompiled with Solid because Git-installed packages live in
 No automated test suite is configured. Check rendering and behavior inside the
 OpenCode TUI.
 
-## License
-
-[MIT](./LICENSE).
+[MIT license](./LICENSE).

@@ -1,7 +1,8 @@
 # OpenCode Usage
 
-A small OpenCode V2 plugin showing **remaining 5-hour and weekly (7-day) ChatGPT
+A small OpenCode V2 TUI plugin showing **remaining 5-hour and weekly (7-day) ChatGPT
 quota side by side**, in sessions and on the home screen.
+For the terminal interface, not the desktop app.
 
 Based on [opencode-quota](https://github.com/slkiser/opencode-quota). Its
 multi-provider focus felt more complex than I needed. I wanted a smaller plugin

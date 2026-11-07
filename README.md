@@ -4,9 +4,10 @@ A small OpenCode V2 TUI plugin showing **remaining 5-hour and weekly (7-day) Cha
 quota side by side**, in sessions and on the home screen.
 For the terminal interface, not the desktop app.
 
-Based on [opencode-quota](https://github.com/slkiser/opencode-quota). Its
-multi-provider focus felt more complex than I needed. I wanted a smaller plugin
-with both limits side by side in the status line, a layout I was missing there.
+Based on [opencode-quota](https://github.com/slkiser/opencode-quota). I wanted
+both the 5-hour and weekly limits side by side in the status line, a layout I
+couldn't get there. This plugin focuses on that: a compact, polished display
+without the extra settings, panels, or sidebar space I didn't need.
 
 | Session                                                                | Home                                                                 |
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |

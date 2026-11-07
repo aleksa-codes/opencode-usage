@@ -25,7 +25,8 @@ const partialBlocks = ["", "▏", "▎", "▍", "▌", "▋", "▊", "▉"]
 export function usageSegments(
   snapshot: UsageSnapshot | undefined,
   now: number,
-  room: number
+  room: number,
+  compactFallback = false
 ): Segment[] {
   if (!snapshot) return [{ text: "OpenAI usage …", role: "muted" as const }]
   if (snapshot.state !== "ready") {
@@ -33,7 +34,10 @@ export function usageSegments(
     return [{ text: message, role: "warning" as const }]
   }
 
-  const candidates = layouts.map((layout) =>
+  const availableLayouts = compactFallback
+    ? [...layouts, { barWidth: 0, reset: false, shortLabels: true, tight: false }]
+    : layouts
+  const candidates = availableLayouts.map((layout) =>
     snapshot.windows.flatMap((window, index) => [
       ...(index > 0 ? [{ text: layout.tight ? "|" : " | ", role: "muted" as const }] : []),
       ...windowSegments(window, now, layout),
@@ -44,6 +48,7 @@ export function usageSegments(
     room > 0
       ? candidates.find((candidate) => widthOf([...candidate, ...suffix]) <= room)
       : undefined
+  if (compactFallback && !selected) return []
   const segments = [...(selected ?? candidates.at(-1) ?? []), ...suffix]
   return room > 0 ? fitSegments(segments, room) : segments
 }

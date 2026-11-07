@@ -21,19 +21,22 @@ var layouts = [
   { barWidth: 0, reset: true, shortLabels: true, tight: true }
 ];
 var partialBlocks = ["", "\u258F", "\u258E", "\u258D", "\u258C", "\u258B", "\u258A", "\u2589"];
-function usageSegments(snapshot, now, room) {
+function usageSegments(snapshot, now, room, compactFallback = false) {
   if (!snapshot)
     return [{ text: "OpenAI usage \u2026", role: "muted" }];
   if (snapshot.state !== "ready") {
     const message = room > 0 ? snapshot.message.slice(0, room) : snapshot.message;
     return [{ text: message, role: "warning" }];
   }
-  const candidates = layouts.map((layout) => snapshot.windows.flatMap((window, index) => [
+  const availableLayouts = compactFallback ? [...layouts, { barWidth: 0, reset: false, shortLabels: true, tight: false }] : layouts;
+  const candidates = availableLayouts.map((layout) => snapshot.windows.flatMap((window, index) => [
     ...index > 0 ? [{ text: layout.tight ? "|" : " | ", role: "muted" }] : [],
     ...windowSegments(window, now, layout)
   ]));
   const suffix = snapshot.stale ? [{ text: " ~", role: "warning" }] : [];
   const selected = room > 0 ? candidates.find((candidate) => widthOf([...candidate, ...suffix]) <= room) : undefined;
+  if (compactFallback && !selected)
+    return [];
   const segments = [...selected ?? candidates.at(-1) ?? [], ...suffix];
   return room > 0 ? fitSegments(segments, room) : segments;
 }
@@ -173,7 +176,7 @@ function isFiniteNumber(value) {
 var tui_default = Plugin.define({
   id: "opencode-usage.tui",
   setup(context) {
-    return context.ui.slot({
+    const stopPrompt = context.ui.slot({
       append: "prompt.footer",
       render: (input) => input.sessionID ? _$createComponent(QuotaLine, {
         get sessionID() {
@@ -181,6 +184,14 @@ var tui_default = Plugin.define({
         }
       }) : null
     });
+    const stopHome = context.ui.slot({
+      append: "home.footer.status",
+      render: () => _$createComponent(QuotaLine, {})
+    });
+    return () => {
+      stopPrompt();
+      stopHome();
+    };
     function QuotaLine(props) {
       const [snapshot, setSnapshot] = createSignal();
       const [room, setRoom] = createSignal(0);
@@ -261,7 +272,7 @@ var tui_default = Plugin.define({
           return theme.text.muted;
         return theme.text.muted;
       };
-      const segments = () => usageSegments(snapshot(), now(), room());
+      const segments = () => usageSegments(snapshot(), now(), room(), props.sessionID !== undefined);
       return (() => {
         var _el$ = _$createElement("box"), _el$2 = _$createElement("text");
         _$insertNode(_el$, _el$2);

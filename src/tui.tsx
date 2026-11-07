@@ -8,12 +8,22 @@ import { isUsageSnapshot, REFRESH_COOLDOWN_MS, UsageRpc, type UsageSnapshot } fr
 export default Plugin.define({
   id: "opencode-usage.tui",
   setup(context) {
-    return context.ui.slot({
+    const stopPrompt = context.ui.slot({
       append: "prompt.footer",
       render: (input) => (input.sessionID ? <QuotaLine sessionID={input.sessionID} /> : null),
     })
 
-    function QuotaLine(props: { sessionID: string }) {
+    const stopHome = context.ui.slot({
+      append: "home.footer.status",
+      render: () => <QuotaLine />,
+    })
+
+    return () => {
+      stopPrompt()
+      stopHome()
+    }
+
+    function QuotaLine(props: { sessionID?: string }) {
       const [snapshot, setSnapshot] = createSignal<UsageSnapshot>()
       const [room, setRoom] = createSignal(0)
       const [now, setNow] = createSignal(Date.now())
@@ -100,7 +110,7 @@ export default Plugin.define({
         return theme.text.muted
       }
 
-      const segments = () => usageSegments(snapshot(), now(), room())
+      const segments = () => usageSegments(snapshot(), now(), room(), props.sessionID !== undefined)
 
       return (
         <box

@@ -1,8 +1,19 @@
 # OpenCode Usage
 
-A small OpenCode V2 plugin that adds OpenAI ChatGPT quota to the TUI prompt footer.
+A small OpenCode V2 plugin that adds OpenAI ChatGPT quota to the TUI prompt footer
+and home-screen status row.
 It shows the 5-hour and weekly usage windows side by side, including reset countdowns and
 the white steady-use marker.
+
+## Background
+
+Based on [opencode-quota](https://github.com/slkiser/opencode-quota), whose multi-provider
+focus felt more complex than I needed. I wanted a smaller plugin focused on showing both
+the 5-hour and weekly (7-day) limits side by side in the status line, a layout I was missing
+in opencode-quota.
+
+Currently, only OpenAI ChatGPT quota is supported. Contributions adding support for other
+providers are welcome.
 
 ## Authentication
 
@@ -20,7 +31,8 @@ not run the Codex CLI.
   off for at least five minutes, honoring a longer `Retry-After` when rate limited.
 - Keeps the last successful values visible if a later check fails.
 - When space is tight, drops the bars before shortening labels so percentages and reset countdowns
-  stay visible as long as possible.
+  stay visible as long as possible. In sessions, drops reset countdowns next and hides quota
+  if both percentages still cannot fit.
 - Writes no credentials or quota snapshots to disk. OAuth refresh stays with OpenCode.
 
 OpenAI's usage endpoint is undocumented and may change independently of OpenCode.
@@ -38,3 +50,7 @@ OpenCode loads the package's server and TUI exports directly from its global con
 The TUI export is precompiled with Solid because Git-installed packages live in `node_modules`,
 where OpenTUI skips runtime TSX compilation. Rebuild and commit `dist/tui.js` after changing the
 TUI or its shared sources. No install-time build or publishing is required.
+
+## License
+
+[MIT](./LICENSE).

@@ -16,6 +16,41 @@ without the extra settings, panels, or sidebar space I didn't need.
 Percentages, bars, reset countdowns, and a theme-aware pacing marker. Adapts to narrow windows.
 **OpenAI ChatGPT only.** Contributions for other providers are welcome.
 
+## Install
+
+Requires OpenCode V2. Choose one installation method.
+
+### From GitHub
+
+```sh
+opencode plugin add github:aleksa-codes/opencode-usage
+```
+
+OpenCode installs the plugin globally. No clone or build is needed.
+
+### From a local checkout
+
+```sh
+git clone https://github.com/aleksa-codes/opencode-usage.git
+cd opencode-usage
+bun install --frozen-lockfile
+bun run build:tui
+pwd
+```
+
+Add the absolute path printed by `pwd` to the `plugins` array in
+`~/.config/opencode/opencode.json` (or `opencode.jsonc` if you use that):
+
+```json
+{
+  "plugins": ["/absolute/path/to/opencode-usage"]
+}
+```
+
+Keep your other plugin entries, but remove the GitHub entry for this plugin if
+you are switching to a local checkout. Point at the checkout directory, not
+`dist/tui.js`, so OpenCode loads both the server and TUI parts.
+
 ## Sign in
 
 `/connect` → **OpenAI** → **Codex browser (legacy)** or **Codex device code (legacy)**.
@@ -25,6 +60,9 @@ the newer “Sign in with ChatGPT” login cannot fetch quota. The plugin accept
 OpenCode's active OAuth credential, but OpenAI decides whether it can access usage.
 Uses your OpenCode login, not the Codex CLI. The plugin writes no credentials or
 quota data to disk; OpenCode manages stored login credentials.
+
+Open the OpenCode TUI (or run `/reload` if it is already open). Once signed in,
+look for both quota windows on the home screen and in the session footer.
 
 ## Refresh, display, and privacy
 
